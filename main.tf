@@ -15,3 +15,19 @@ module "igw" {
   env          = var.env
   cluster_name = var.cluster_name
 }
+
+module "subnets" {
+  source                = "./modules/subnets"
+  vpc_id                = module.vpc.vpc_id
+  env                   = var.env
+  cluster_name          = var.cluster_name
+  pub_sub_name          = var.pub_sub_name
+  pub_subnet_count      = var.pub_subnet_count
+  pub_cidr_block        = var.pub_cidr_block
+  pub_availability_zone = var.pub_availability_zone
+
+  pri_sub_name          = var.pri_sub_name
+  pri_subnet_count      = var.pri_subnet_count
+  pri_cidr_block        = var.pri_cidr_block
+  pri_availability_zone = var.pri_availability_zone
+}
