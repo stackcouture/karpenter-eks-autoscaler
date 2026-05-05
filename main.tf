@@ -31,3 +31,25 @@ module "subnets" {
   pri_cidr_block        = var.pri_cidr_block
   pri_availability_zone = var.pri_availability_zone
 }
+
+module "route-table" {
+  source             = "./modules/rt"
+  vpc_id             = module.vpc.vpc_id
+  env                = var.env
+  public_rt_name     = var.public_rt_name
+  private_rt_name    = var.private_rt_name
+  igw_id             = module.igw.igw_id
+  nat_gateway_id     = module.nat.nat_gateway_id
+  public_subnet_ids  = module.subnets.public_subnets
+  private_subnet_ids = module.subnets.private_subnets
+}
+
+module "nat" {
+  source            = "./modules/nat"
+  vpc_id            = module.vpc.vpc_id
+  env               = var.env
+  eip_name          = var.eip_name
+  igw_id            = module.igw.igw_id
+  nat_gw_name       = var.nat_gw_name
+  public_subnet_ids = module.subnets.public_subnets
+}

@@ -19,3 +19,10 @@ pri_subnet_count      = 3
 pri_cidr_block        = ["10.16.128.0/20", "10.16.144.0/20", "10.16.160.0/20"]
 pri_availability_zone = ["ap-south-1a", "ap-south-1b", "ap-south-1c"]
 pri_sub_name          = "subnet-private"
+
+# Route Table
+public_rt_name  = "public-route-table"
+private_rt_name = "private-route-table"
+
+nat_gw_name = "NAT-GW"
+eip_name    = "VPC-Elastic-IP"
