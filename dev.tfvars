@@ -26,3 +26,6 @@ private_rt_name = "private-route-table"
 
 nat_gw_name = "NAT-GW"
 eip_name    = "VPC-Elastic-IP"
+
+sg_name        = "eks-cluster-sg"
+sg_description = "Security group for EKS cluster"

@@ -80,3 +80,14 @@ variable "eip_name" {
   type        = string
   description = "Elastic IP Name"
 }
+
+# Security Group 
+variable "sg_name" {
+  type        = string
+  description = "Security Group Name"
+}
+
+variable "sg_description" {
+  type        = string
+  description = "Security Group Desription"
+}
