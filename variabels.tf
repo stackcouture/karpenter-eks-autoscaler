@@ -30,11 +30,6 @@ variable "enable_dns_hostnames" {
 }
 
 # IGW 
-variable "vpc_id" {
-  type        = string
-  description = "VPC ID"
-}
-
 variable "igw_name" {
   type        = string
   description = "Internet Gateway Name"
