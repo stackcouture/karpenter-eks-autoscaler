@@ -7,3 +7,11 @@ module "vpc" {
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
 }
+
+module "igw" {
+  source       = "./modules/igw"
+  vpc_id       = module.vpc.vpc_id
+  igw_name     = var.igw_name
+  env          = var.env
+  cluster_name = var.cluster_name
+}
