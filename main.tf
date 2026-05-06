@@ -62,3 +62,31 @@ module "sg" {
   sg_description = var.sg_description
   cluster_name   = var.cluster_name
 }
+
+module "iam" {
+  source                        = "./modules/iam"
+  cluster_name                  = var.cluster_name
+  aws_region                    = var.aws_region
+  is_eks_nodegroup_role_enabled = var.is_eks_nodegroup_role_enabled
+  is_eks_role_enabled           = var.is_eks_role_enabled
+  oidc_provider_arn             = module.eks.oidc_provider_arn
+  oidc_provider_url             = module.eks.oidc_provider_url
+}
+
+module "eks" {
+  source                    = "./modules/eks"
+  cluster_name              = var.cluster_name
+  is_eks_cluster_enabled    = var.is_eks_cluster_enabled
+  kubernetes_version        = var.kubernetes_version
+  endpoint_private_access   = var.endpoint_private_access
+  endpoint_public_access    = var.endpoint_public_access
+  aws_eks_security_group_id = module.sg.eks_cluster_sg_id
+  eks_cluster_role_arn      = module.iam.eks_cluster_role_arn
+  private_subnet_ids        = module.subnets.private_subnets
+  env                       = var.env
+  desired_capacity          = var.desired_capacity
+  min_capacity              = var.min_capacity
+  max_capacity              = var.max_capacity
+  instance_types            = var.instance_types
+  node_eks_role_arn         = module.iam.eks_nodegroup_role_arn
+}

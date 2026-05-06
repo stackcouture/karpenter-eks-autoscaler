@@ -91,3 +91,60 @@ variable "sg_description" {
   type        = string
   description = "Security Group Desription"
 }
+
+# IAM Role Varibales 
+variable "is_eks_role_enabled" {
+  type        = bool
+  description = "EKS Role enabled"
+}
+
+variable "is_eks_nodegroup_role_enabled" {
+  type        = bool
+  description = "EKS NodeGroup Role enabled"
+}
+
+variable "aws_region" {
+  type        = string
+  description = "AWS Region Name"
+}
+
+# Cluster Variables 
+variable "is_eks_cluster_enabled" {
+  type        = bool
+  description = "EKS Cluster Enabled"
+}
+
+variable "kubernetes_version" {
+  type        = string
+  description = "Kubernetes version"
+}
+
+variable "endpoint_private_access" {
+  type        = string
+  description = "Cluster EndPoint Private Access"
+}
+
+variable "endpoint_public_access" {
+  type        = string
+  description = "Cluster EndPoint Public Access"
+}
+
+variable "desired_capacity" {
+  type        = string
+  description = "Desired Capacity"
+}
+
+variable "min_capacity" {
+  type        = string
+  description = "Minimum Capacity"
+}
+
+variable "max_capacity" {
+  type        = string
+  description = "Maximum capacity"
+}
+
+variable "instance_types" {
+  type        = list(string)
+  description = "Instance Types"
+}

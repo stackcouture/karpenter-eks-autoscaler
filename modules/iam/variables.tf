@@ -1,0 +1,27 @@
+variable "is_eks_role_enabled" {
+  type        = bool
+  description = "EKS Role enabled"
+}
+
+variable "is_eks_nodegroup_role_enabled" {
+  type        = bool
+  description = "EKS NodeGroup Role enabled"
+}
+
+variable "cluster_name" {
+  type        = string
+  description = "Cluster Name"
+}
+
+variable "aws_region" {
+  type        = string
+  description = "AWS Region Name"
+}
+
+variable "oidc_provider_arn" {
+  type = string
+}
+
+variable "oidc_provider_url" {
+  type = string
+}
