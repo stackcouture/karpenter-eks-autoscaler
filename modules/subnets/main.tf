@@ -31,6 +31,7 @@ resource "aws_subnet" "private_subnet" {
     Env                                           = var.env
     "kubernetes.io/cluster/${local.cluster_name}" = "owned"
     "kubernetes.io/role/internal-elb"             = "1"
+    "karpenter.sh/discovery"                      = "local.cluster_name"
   }
 
   depends_on = [var.vpc_id]
