@@ -1630,3 +1630,44 @@ The following resources provide official documentation and additional guidance f
 > This project follows AWS, Kubernetes, and Karpenter recommended practices for deploying a secure, scalable, and cost-efficient Kubernetes-native autoscaling solution on Amazon EKS. Refer to the official documentation above for the latest features, version compatibility, and production guidance.
 
 ---
+## 🙏 Acknowledgements
+
+This project was inspired by the AWS, Kubernetes, and Karpenter communities and is built using industry-recommended practices for deploying production-ready Kubernetes autoscaling on Amazon EKS.
+
+Special thanks to the following open-source projects and organizations for providing the tools, documentation, and best practices that made this implementation possible.
+
+- **Amazon Web Services (AWS)** for providing the Amazon EKS platform and cloud-native infrastructure services.
+- **The Karpenter Project** for developing a Kubernetes-native autoscaler that enables intelligent and efficient node provisioning.
+- **The Kubernetes Community** for building and maintaining the world's leading container orchestration platform.
+- **Helm** for simplifying Kubernetes application deployment and lifecycle management.
+- **HashiCorp** for Terraform, enabling Infrastructure as Code (IaC) and reproducible cloud deployments.
+- **The Cloud Native Computing Foundation (CNCF)** for fostering the cloud-native ecosystem and supporting Kubernetes-related projects.
+- **The Open Source Community** for continuously contributing tools, documentation, and best practices that advance cloud-native technologies.
+
+---
+### ⭐ Support
+
+If you found this project useful:
+
+- ⭐ Star this repository.
+- 🍴 Fork the repository and build upon it.
+- 🛠️ Contribute improvements through Issues or Pull Requests.
+- 📢 Share the project with the cloud-native community.
+
+Your support helps improve the project and encourages the creation of more production-grade DevOps and Kubernetes learning resources.
+
+---
+### 👨‍💻 Author
+
+**Naveen**
+
+**DevOps Engineer | AWS | Kubernetes | Terraform | GitOps | DevSecOps**
+
+- GitHub: https://github.com/stackcouture
+- LinkedIn: https://www.linkedin.com/in/naveen-stackcouture/
+
+---
+
+> **"Automating infrastructure, enabling scalable platforms, and continuously learning cloud-native technologies."**
+
+---
