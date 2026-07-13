@@ -1048,71 +1048,308 @@ Before deploying Karpenter to production, verify the following:
 > A production-ready Karpenter deployment combines secure IAM configuration, well-designed NodePools, optimized EC2NodeClasses, intelligent cost optimization, and comprehensive monitoring to deliver a scalable, resilient, and cost-efficient Amazon EKS platform.
 
 ---
-## 🚨 Common Issues
+## 🛠️ Troubleshooting
 
-### Karpenter Cannot Discover Subnets
-
-Verify subnet discovery tags.
-
-```bash
-aws ec2 describe-subnets
-```
+This section covers common issues you may encounter when deploying or operating Karpenter on Amazon EKS, along with recommended troubleshooting steps.
 
 ---
-### AccessDenied Errors
+### Issue 1: Karpenter Controller Pod Is Not Running
 
-Verify the following:
+#### Symptoms
 
-* IAM Permissions
-* IRSA Configuration
-* OIDC Provider
-* IAM Trust Policy
+- Karpenter controller Pod remains in `Pending`, `CrashLoopBackOff`, or `Error`.
+- Deployment is unavailable.
 
----
-### Nodes Not Launching
-
-Inspect Karpenter controller logs.
+#### Verify
 
 ```bash
+kubectl get pods -n karpenter
+
+kubectl describe pod <karpenter-pod-name> -n karpenter
+
 kubectl logs -n karpenter deployment/karpenter
 ```
 
----
-## 🧹 Cleanup
+#### Possible Causes
 
-#### Delete NodePool
+- Insufficient cluster resources.
+- Incorrect Helm configuration.
+- Missing IAM permissions.
+- Invalid Service Account annotation.
+
+#### Resolution
+
+- Verify the Helm installation.
+- Check the controller logs for errors.
+- Confirm the IAM Role is attached to the Service Account.
+- Ensure the EKS cluster has sufficient resources.
+
+---
+### Issue 2: Pending Pods Are Not Triggering Node Provisioning
+
+#### Symptoms
+
+- Pods remain in the `Pending` state.
+- No new EC2 instances are launched.
+
+#### Verify
 
 ```bash
-kubectl delete nodepool default
+kubectl get pods
+
+kubectl describe pod <pod-name>
+
+kubectl logs -n karpenter deployment/karpenter
 ```
 
-#### Remove Karpenter
+#### Possible Causes
+
+- NodePool requirements are too restrictive.
+- EC2NodeClass is misconfigured.
+- Missing subnet or security group discovery tags.
+- Insufficient AWS account quotas.
+
+#### Resolution
+
+- Review the NodePool scheduling requirements.
+- Verify the EC2NodeClass configuration.
+- Confirm the required discovery tags exist.
+- Check AWS service quotas.
+
+---
+
+### Issue 3: EC2NodeClass Not Ready
+
+#### Symptoms
+
+- EC2NodeClass status is not `Ready`.
+
+#### Verify
 
 ```bash
-helm uninstall karpenter -n karpenter
+kubectl get ec2nodeclass
+
+kubectl describe ec2nodeclass default
+```
+
+#### Possible Causes
+
+- Invalid IAM role.
+- Missing subnet discovery tags.
+- Missing security group discovery tags.
+- Invalid AMI configuration.
+
+#### Resolution
+
+- Verify the IAM instance profile or node role.
+- Check subnet and security group tags.
+- Validate the selected AMI family and AMI configuration.
+
+---
+
+### Issue 4: NodePool Not Ready
+
+#### Symptoms
+
+- NodePool remains in a non-ready state.
+- Worker nodes are not provisioned.
+
+#### Verify
+
+```bash
+kubectl get nodepool
+
+kubectl describe nodepool default
+```
+
+#### Possible Causes
+
+- Invalid NodePool requirements.
+- EC2NodeClass reference is incorrect.
+- Resource limits are too restrictive.
+
+#### Resolution
+
+- Verify the referenced EC2NodeClass exists.
+- Review scheduling requirements.
+- Increase resource limits if necessary.
+
+---
+
+### Issue 5: Worker Nodes Fail to Join the Cluster
+
+#### Symptoms
+
+- EC2 instances are created but do not appear in the cluster.
+
+#### Verify
+
+```bash
+kubectl get nodes
+
+aws ec2 describe-instances
+```
+
+#### Possible Causes
+
+- Incorrect IAM instance profile.
+- Bootstrap configuration failure.
+- Network connectivity issues.
+- Security group misconfiguration.
+
+#### Resolution
+
+- Verify the node IAM role.
+- Check subnet routing and NAT Gateway configuration.
+- Confirm security group rules allow communication with the EKS control plane.
+- Review EC2 instance system logs.
+
+---
+### Issue 6: IRSA Authentication Failure
+
+#### Symptoms
+
+- Access denied errors in the Karpenter controller logs.
+- AWS API calls fail.
+
+#### Verify
+
+```bash
+kubectl describe sa karpenter -n karpenter
+
+kubectl logs -n karpenter deployment/karpenter
+```
+
+#### Possible Causes
+
+- Missing IAM Role annotation.
+- Incorrect trust policy.
+- OIDC provider is not configured.
+
+#### Resolution
+
+- Verify the Service Account annotation.
+- Confirm the IAM trust relationship.
+- Ensure the Amazon EKS OIDC provider is associated with the cluster.
+
+---
+### Issue 7: Discovery Tags Not Found
+
+#### Symptoms
+
+- Karpenter cannot discover subnets or security groups.
+- Node provisioning fails.
+
+#### Verify
+
+```bash
+aws ec2 describe-subnets
+
+aws ec2 describe-security-groups
+```
+
+#### Resolution
+
+Ensure the following tag is applied to all required resources:
+
+```text
+karpenter.sh/discovery=<cluster-name>
 ```
 
 ---
-## 📚 References
+### Issue 8: Node Consolidation Is Not Working
 
-* Amazon EKS Documentation
-* Karpenter Documentation
-* Kubernetes Documentation
-* Helm Documentation
+#### Symptoms
+
+- Empty or underutilized nodes remain running.
+- Infrastructure costs remain higher than expected.
+
+#### Verify
+
+```bash
+kubectl get nodepool -o yaml
+
+kubectl logs -n karpenter deployment/karpenter
+```
+
+#### Possible Causes
+
+- Consolidation is disabled.
+- Running Pods cannot be evicted.
+- Pod Disruption Budgets prevent node termination.
+
+#### Resolution
+
+- Enable node consolidation.
+- Review Pod Disruption Budgets.
+- Verify disruption policies.
 
 ---
-## 🎯 Conclusion
+### Issue 9: Spot Instances Are Not Provisioned
 
-Karpenter simplifies Kubernetes node autoscaling by provisioning infrastructure dynamically based on workload requirements.
+#### Symptoms
 
-#### Benefits
+- Only On-Demand instances are launched.
 
-* Faster Autoscaling
-* Intelligent Bin Packing
-* Reduced Infrastructure Costs
-* Spot Instance Optimization
-* Simplified Node Management
+#### Verify
 
-Karpenter is rapidly becoming the preferred node autoscaling solution for modern Amazon EKS environments due to its flexibility, efficiency, and production-ready design.
+```bash
+kubectl describe nodepool default
+```
+
+#### Possible Causes
+
+- Spot capacity unavailable.
+- NodePool requirements restrict Spot instances.
+- AWS capacity constraints.
+
+#### Resolution
+
+- Allow multiple EC2 instance families.
+- Include both Spot and On-Demand capacity types.
+- Deploy across multiple Availability Zones.
+
+---
+### Useful Debugging Commands
+
+```bash
+kubectl get pods -A
+
+kubectl get nodes
+
+kubectl get nodepool
+
+kubectl get ec2nodeclass
+
+kubectl get nodeclaims
+
+kubectl describe nodepool default
+
+kubectl describe ec2nodeclass default
+
+kubectl logs -n karpenter deployment/karpenter
+
+kubectl get events --sort-by=.lastTimestamp
+```
+
+---
+### Production Troubleshooting Checklist
+
+Before investigating complex issues, verify the following:
+
+- ✅ Karpenter controller is running.
+- ✅ CRDs are installed.
+- ✅ IAM Roles for Service Accounts (IRSA) is configured.
+- ✅ Amazon EKS OIDC provider is enabled.
+- ✅ EC2NodeClass is in the `Ready` state.
+- ✅ NodePool is configured correctly.
+- ✅ Subnets and security groups have the required discovery tags.
+- ✅ IAM instance profile is valid.
+- ✅ AWS service quotas are sufficient.
+- ✅ Kubernetes events and Karpenter controller logs have been reviewed.
+
+> **Tip**
+>
+> Most provisioning issues are caused by missing IAM permissions, incorrect discovery tags, invalid EC2NodeClass or NodePool configurations, or restrictive scheduling requirements. Reviewing Kubernetes events and Karpenter controller logs is usually the fastest way to identify the root cause.
 
 ---
