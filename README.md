@@ -1511,3 +1511,122 @@ Verify that no Karpenter-managed EC2 instances remain running in your AWS accoun
 > If you are managing your infrastructure with **Terraform**, prefer using `terraform destroy` to remove AWS resources. This ensures that all infrastructure is deleted in the correct order and prevents orphaned resources that could continue to incur charges.
 
 ---
+## 📚 References
+
+The following resources provide official documentation and additional guidance for deploying and operating **Karpenter on Amazon EKS**.
+
+---
+### AWS Documentation
+
+- Amazon EKS User Guide  
+  https://docs.aws.amazon.com/eks/latest/userguide/
+
+- Amazon EKS Best Practices Guide  
+  https://aws.github.io/aws-eks-best-practices/
+
+- Karpenter on Amazon EKS  
+  https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html
+
+- IAM Roles for Service Accounts (IRSA)  
+  https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
+
+- Amazon EC2 Documentation  
+  https://docs.aws.amazon.com/ec2/
+
+- AWS Identity and Access Management (IAM)  
+  https://docs.aws.amazon.com/iam/
+
+- Amazon VPC Documentation  
+  https://docs.aws.amazon.com/vpc/
+
+---
+### Karpenter Documentation
+
+- Karpenter Official Documentation  
+  https://karpenter.sh/
+
+- Karpenter Getting Started Guide  
+  https://karpenter.sh/docs/getting-started/
+
+- NodePool Documentation  
+  https://karpenter.sh/docs/concepts/nodepools/
+
+- EC2NodeClass Documentation  
+  https://karpenter.sh/docs/concepts/nodeclasses/
+
+- NodeClaim Documentation  
+  https://karpenter.sh/docs/concepts/nodeclaims/
+
+- Disruption and Consolidation  
+  https://karpenter.sh/docs/concepts/disruption/
+
+---
+### Kubernetes Documentation
+
+- Kubernetes Documentation  
+  https://kubernetes.io/docs/
+
+- Kubernetes Scheduling  
+  https://kubernetes.io/docs/concepts/scheduling-eviction/
+
+- Taints and Tolerations  
+  https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+- Node Affinity  
+  https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+
+- Resource Requests and Limits  
+  https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+---
+### Helm Documentation
+
+- Helm Official Documentation  
+  https://helm.sh/docs/
+
+- Helm Charts Repository  
+  https://artifacthub.io/
+
+---
+### Terraform Documentation
+
+- Terraform Documentation  
+  https://developer.hashicorp.com/terraform/docs
+
+- Terraform AWS Provider  
+  https://registry.terraform.io/providers/hashicorp/aws/latest/docs
+
+---
+### Best Practices
+
+- Amazon EKS Security Best Practices  
+  https://aws.github.io/aws-eks-best-practices/security/
+
+- Amazon EKS Cost Optimization Best Practices  
+  https://aws.github.io/aws-eks-best-practices/cost_optimization/
+
+- Kubernetes Production Best Practices  
+  https://kubernetes.io/docs/setup/best-practices/
+
+---
+### Community Resources
+
+- Karpenter GitHub Repository  
+  https://github.com/aws/karpenter-provider-aws
+
+- Karpenter Release Notes  
+  https://github.com/aws/karpenter-provider-aws/releases
+
+- Kubernetes GitHub Repository  
+  https://github.com/kubernetes/kubernetes
+
+- AWS Containers Blog  
+  https://aws.amazon.com/blogs/containers/
+
+---
+
+> **Note**
+>
+> This project follows AWS, Kubernetes, and Karpenter recommended practices for deploying a secure, scalable, and cost-efficient Kubernetes-native autoscaling solution on Amazon EKS. Refer to the official documentation above for the latest features, version compatibility, and production guidance.
+
+---
