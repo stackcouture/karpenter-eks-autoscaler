@@ -1353,3 +1353,161 @@ Before investigating complex issues, verify the following:
 > Most provisioning issues are caused by missing IAM permissions, incorrect discovery tags, invalid EC2NodeClass or NodePool configurations, or restrictive scheduling requirements. Reviewing Kubernetes events and Karpenter controller logs is usually the fastest way to identify the root cause.
 
 ---
+## 🧹 Cleanup
+
+After completing the demonstration or testing, remove the Kubernetes resources and AWS infrastructure to avoid unnecessary charges.
+
+---
+
+### Step 1: Delete the Test Workload
+
+Remove the sample application used to trigger Karpenter autoscaling.
+
+```bash
+kubectl delete deployment inflate
+```
+
+Verify that the deployment has been removed.
+
+```bash
+kubectl get deployments
+```
+
+---
+### Step 2: Delete the NodePool
+
+Delete the NodePool to prevent Karpenter from provisioning new worker nodes.
+
+```bash
+kubectl delete nodepool default
+```
+
+Verify the NodePool has been removed.
+
+```bash
+kubectl get nodepool
+```
+
+---
+### Step 3: Delete the EC2NodeClass
+
+Delete the EC2NodeClass configuration.
+
+```bash
+kubectl delete ec2nodeclass default
+```
+
+Verify the EC2NodeClass has been removed.
+
+```bash
+kubectl get ec2nodeclass
+```
+
+---
+### Step 4: Uninstall Karpenter
+
+Delete the Karpenter deployment.
+
+```bash
+kubectl delete -f karpenter.yaml
+```
+
+Delete the Karpenter namespace.
+
+```bash
+kubectl delete namespace karpenter
+```
+
+---
+### Step 5: Remove the Custom Resource Definitions (CRDs)
+
+Delete the Karpenter Custom Resource Definitions.
+
+```bash
+kubectl delete crd nodepools.karpenter.sh
+
+kubectl delete crd ec2nodeclasses.karpenter.k8s.aws
+
+kubectl delete crd nodeclaims.karpenter.sh
+```
+
+Verify that the CRDs have been removed.
+
+```bash
+kubectl get crds | grep karpenter
+```
+
+---
+### Step 6: Remove IAM Resources (Optional)
+
+If the environment is no longer required, remove the IAM resources created for Karpenter.
+
+- Delete the IAM Role
+- Detach and delete the IAM Policy
+- Delete the IAM Instance Profile
+- Remove the IAM OIDC Provider *(only if the EKS cluster is being deleted)*
+
+---
+### Step 7: Remove Discovery Tags (Optional)
+
+Remove the Karpenter discovery tags from the Amazon VPC resources if they are no longer needed.
+
+**Subnet Tag**
+
+```text
+karpenter.sh/discovery=<cluster-name>
+```
+
+**Security Group Tag**
+
+```text
+karpenter.sh/discovery=<cluster-name>
+```
+
+---
+### Step 8: Delete the Amazon EKS Cluster (Optional)
+
+If this was a dedicated lab or demonstration environment, delete the Amazon EKS cluster and its associated AWS resources using Terraform.
+
+```bash
+terraform destroy
+```
+
+Review the execution plan and confirm the deletion when prompted.
+
+---
+### Verify Resource Cleanup
+
+Confirm that all Karpenter resources have been removed.
+
+```bash
+kubectl get nodepool
+
+kubectl get ec2nodeclass
+
+kubectl get nodeclaims
+
+kubectl get pods -n karpenter
+```
+
+Verify that no Karpenter-managed EC2 instances remain running in your AWS account.
+
+---
+### Cleanup Checklist
+
+- ✅ Test workload removed
+- ✅ NodePool deleted
+- ✅ EC2NodeClass deleted
+- ✅ Karpenter controller uninstalled
+- ✅ Karpenter namespace removed
+- ✅ Karpenter CRDs deleted
+- ✅ IAM resources removed (if no longer required)
+- ✅ Discovery tags removed (optional)
+- ✅ Amazon EKS cluster destroyed (optional)
+- ✅ No Karpenter-managed EC2 instances remain
+
+> **Note**
+>
+> If you are managing your infrastructure with **Terraform**, prefer using `terraform destroy` to remove AWS resources. This ensures that all infrastructure is deleted in the correct order and prevents orphaned resources that could continue to incur charges.
+
+---
