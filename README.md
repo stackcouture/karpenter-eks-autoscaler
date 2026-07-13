@@ -1,6 +1,9 @@
-## 🚀 Karpenter on Amazon EKS 
+## 🚀 Karpenter on Amazon EKS
 
-Deploy and configure **Karpenter** on an **Amazon EKS** cluster using **IAM Roles for Service Accounts (IRSA)**, **EC2NodeClass**, **NodePool**, and **Spot/On-Demand provisioning** to build a scalable, production-ready Kubernetes platform.
+Deploy and configure **Karpenter** on **Amazon EKS** using **IAM Roles for Service Accounts (IRSA)**, **EC2NodeClass**, **NodePool**, and **Spot/On-Demand capacity** to build a **production-ready, Kubernetes-native autoscaling platform**.
+
+This project demonstrates how to dynamically provision Amazon EC2 worker nodes based on Kubernetes workload demands, optimize infrastructure costs through intelligent instance selection and automatic node consolidation, and implement AWS best practices for building scalable, secure, highly available, and cost-efficient Kubernetes environments on Amazon EKS.
+
 
 ---
 ## 📑 Table of Contents
