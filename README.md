@@ -473,4 +473,5 @@ Karpenter simplifies Kubernetes node autoscaling by provisioning infrastructure 
 * Simplified Node Management
 
 Karpenter is rapidly becoming the preferred node autoscaling solution for modern Amazon EKS environments due to its flexibility, efficiency, and production-ready design.
+
 ---
