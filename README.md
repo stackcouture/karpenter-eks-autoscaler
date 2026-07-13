@@ -1,412 +1,333 @@
-# Karpenter on Amazon EKS — Production-Ready Setup Guide
+## 🚀 Karpenter on Amazon EKS – Production-Ready Setup Guide
 
-## 📌 Overview
-
-This guide demonstrates how to deploy and configure Karpenter on an Amazon EKS cluster using:
-
-- IRSA (IAM Roles for Service Accounts)
-- Private or Public EKS Cluster
-- Spot + On-Demand Provisioning
-- NodePool & EC2NodeClass
-- Production-Grade Scaling Practices
+> Deploy and configure **Karpenter** on **Amazon EKS** using **IAM Roles for Service Accounts (IRSA)**, **EC2NodeClass**, **NodePool**, and **Spot/On-Demand provisioning** to build a scalable, cost-optimized, production-ready Kubernetes platform.
 
 ---
 
-# 🚀 What is Karpenter?
+## 📑 Table of Contents
 
-Karpenter is a Kubernetes node autoscaler developed by AWS.
-
-Unlike Cluster Autoscaler:
-
-- Provisions nodes directly
-- Makes intelligent scheduling decisions
-- Launches nodes faster
-- Supports Spot optimization
-- Eliminates node group dependency
-
-Karpenter dynamically creates and terminates EC2 instances based on unschedulable Kubernetes pods.
+* [📖 Project Overview](#-project-overview)
+* [🚀 What is Karpenter?](#-what-is-karpenter)
+* [✨ Features](#-features)
+* [🏗️ Architecture Overview](#️-architecture-overview)
+* [✅ Prerequisites](#-prerequisites)
+* [🔐 Configure IAM Roles for Service Accounts (IRSA)](#-configure-iam-roles-for-service-accounts-irsa)
+* [⚙️ Install Karpenter](#️-install-karpenter)
+* [🏷️ Configure AWS Resource Discovery](#️-configure-aws-resource-discovery)
+* [🧩 Create an EC2NodeClass](#-create-an-ec2nodeclass)
+* [🖥️ Create a NodePool](#️-create-a-nodepool)
+* [📈 Validate Autoscaling](#-validate-autoscaling)
+* [💰 Spot & On-Demand Best Practices](#-spot--on-demand-best-practices)
+* [🔥 Production Best Practices](#-production-best-practices)
+* [🚨 Troubleshooting](#-troubleshooting)
+* [🧹 Cleanup](#-cleanup)
+* [📚 References](#-references)
+* [🎯 Conclusion](#-conclusion)
 
 ---
 
-# 🏗️ Architecture Overview
+## 📖 Project Overview
+
+Karpenter is the next-generation Kubernetes node autoscaler for Amazon EKS. Unlike traditional autoscaling solutions, it provisions infrastructure directly based on the scheduling requirements of pending pods, enabling faster scaling, improved resource utilization, and lower infrastructure costs.
+
+This repository demonstrates a **production-ready Karpenter deployment** on Amazon EKS using Infrastructure as Code and AWS best practices, including:
+
+* IAM Roles for Service Accounts (IRSA)
+* Dynamic EC2 provisioning
+* EC2NodeClass and NodePool resources
+* Spot and On-Demand capacity
+* Intelligent scheduling
+* Node consolidation
+* Cost optimization
+* Production-ready scaling strategies
+
+---
+
+## 🚀 What is Karpenter?
+
+Karpenter is an open-source Kubernetes node lifecycle controller developed for Amazon EKS.
+
+Instead of increasing the size of predefined Auto Scaling Groups, Karpenter provisions the most appropriate EC2 instances in real time based on workload requirements.
+
+## Key Benefits
+
+* ⚡ Faster node provisioning
+* 📦 Intelligent bin-packing
+* 💰 Lower infrastructure costs
+* 🚀 Direct EC2 provisioning
+* 🌐 Automatic instance type selection
+* 🎯 Spot Instance optimization
+* 🔄 Node consolidation
+* 📈 High scheduling efficiency
+
+---
+## ✨ Features
+
+* Production-ready Amazon EKS deployment
+* IAM Roles for Service Accounts (IRSA)
+* Dynamic EC2 instance provisioning
+* EC2NodeClass configuration
+* NodePool configuration
+* Spot and On-Demand capacity management
+* Automatic node consolidation
+* Intelligent scheduling constraints
+* Cost optimization
+* Production scaling best practices
+
+---
+## 🏗️ Architecture Overview
 
 ![Project Overview](docs/images/karpenter.png "Architecture")
 
-```text
-Pending Pods
-      ↓
-Karpenter Controller
-      ↓
-EC2 Fleet API
-      ↓
-Launch Optimized EC2 Nodes
-      ↓
-Pods Scheduled Automatically
-```
+---
+## ✅ Prerequisites
+
+Ensure the following components are available before deploying Karpenter:
+
+* Amazon EKS Cluster (v1.27 or later)
+* kubectl configured
+* AWS CLI configured
+* Helm v3
+* IAM OIDC Provider enabled
+* Existing worker nodes
+* Properly tagged VPC subnets
+* Properly tagged security groups
 
 ---
 
-# ✅ Prerequisites
+## 🔐 Configure IAM Roles for Service Accounts (IRSA)
 
-Before starting, ensure the following are available:
+Karpenter requires AWS permissions to interact with infrastructure resources.
 
-- Amazon EKS Cluster (v1.27+ recommended)
-- kubectl configured
-- Helm installed
-- AWS CLI configured
-- IAM OIDC Provider enabled
-- Existing worker nodes
-- Properly tagged VPC subnets
+Typical permissions include:
 
----
+* Amazon EC2
+* IAM PassRole
+* AWS Systems Manager (SSM)
+* AWS Pricing API
+* Amazon EKS APIs
 
-
-# 🔑 Create IAM Role for Karpenter (IRSA)
-
-Karpenter requires AWS permissions for:
-
-- EC2
-- IAM
-- Pricing API
-- SSM
-- EKS APIs
-
-Example IAM policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:*",
-        "iam:PassRole",
-        "ssm:GetParameter",
-        "pricing:GetProducts"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-```
+Create an IAM Role and associate it with the Karpenter Service Account using IRSA.
 
 ---
+## ⚙️ Install Karpenter
 
-# ⚙️ Install Karpenter Using Helm
+Deploy Karpenter using the official Helm chart.
 
-## Helm Install
+The installation includes:
 
-```bash
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-```
-
-## Install Karpenter
-
-```bash 
-kubectl create -f \
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KARPENTER_VERSION}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
-kubectl create -f \
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KARPENTER_VERSION}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
-kubectl create -f \
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KARPENTER_VERSION}/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
-```
-
-```bash
-kubectl create ns karpenter
-export KARPENTER_VERSION="1.12.0"
-
-helm template karpenter oci://public.ecr.aws/karpenter/karpenter \
-  --version "${KARPENTER_VERSION}" \
-  --namespace karpenter \
-  --set settings.clusterName=eks-cluster \
-  --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::104824081961:role/KarpenterControllerRole-eks-cluster" \
-  --set controller.resources.requests.cpu=1 \
-  --set controller.resources.requests.memory=1Gi \
-  --set controller.resources.limits.cpu=1 \
-  --set controller.resources.limits.memory=1Gi \
-  > karpenter.yaml
-```
+* Karpenter CRDs
+* Controller deployment
+* Service Account
+* IRSA annotation
+* Controller resource limits
+* Cluster configuration
 
 ---
+## 🏷️ Configure AWS Resource Discovery
 
-# 🏷️ Tag Subnets & Security Groups
+Karpenter discovers networking resources using AWS resource tags.
 
-Karpenter discovers AWS networking resources using tags.
-
-## Required Subnet Tag
+### Required Subnet Tag
 
 ```text
 karpenter.sh/discovery=<cluster-name>
 ```
 
-## Required Security Group Tag
+### Required Security Group Tag
 
 ```text
 karpenter.sh/discovery=<cluster-name>
 ```
 
 ---
+### 🧩 Create an EC2NodeClass
 
-# 🧩 Create EC2NodeClass
+The EC2NodeClass defines the infrastructure configuration used when provisioning EC2 instances.
 
-`EC2NodeClass` defines:
+Typical configuration includes:
 
-- AMI family
-- Subnets
-- Security groups
-- IAM role
-- Storage configuration
-
-Example:
-
-```yaml
-apiVersion: karpenter.k8s.aws/v1beta1
-kind: EC2NodeClass
-metadata:
-  name: default
-spec:
-  amiFamily: AL2
-
-  role: KarpenterNodeRole
-
-  subnetSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: demo-cluster
-
-  securityGroupSelectorTerms:
-    - tags:
-        karpenter.sh/discovery: demo-cluster
-
-  amiSelectorTerms:
-    - alias: al2@latest
-```
+* AMI Family
+* IAM Role
+* VPC Subnets
+* Security Groups
+* Storage configuration
+* AMI selection
+* Metadata options
 
 ---
+### 🖥️ Create a NodePool
 
-# 🖥️ Create NodePool
+A NodePool defines how Karpenter provisions worker nodes.
 
-`NodePool` defines:
+Typical configuration includes:
 
-- Capacity type
-- Instance types
-- Scaling limits
-- Scheduling constraints
-
-Example:
-
-```yaml
-apiVersion: karpenter.sh/v1beta1
-kind: NodePool
-metadata:
-  name: default
-spec:
-  template:
-    spec:
-      nodeClassRef:
-        name: default
-
-      requirements:
-        - key: kubernetes.io/arch
-          operator: In
-          values: ["amd64"]
-
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["spot", "on-demand"]
-
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-            - t3.medium
-            - t3.large
-            - m5.large
-
-  limits:
-    cpu: "1000"
-
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
-```
+* Instance architecture
+* Capacity type
+* Instance families
+* Scaling limits
+* Scheduling constraints
+* Consolidation policies
+* Node expiration
+* Resource limits
 
 ---
+### 📈 Validate Autoscaling
 
-# 📈 Test Karpenter Autoscaling
+Deploy a workload that requests more CPU than the existing nodes can provide.
 
-## Deploy Test Workload
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: inflate
-spec:
-  replicas: 20
-  selector:
-    matchLabels:
-      app: inflate
-  template:
-    metadata:
-      labels:
-        app: inflate
-    spec:
-      containers:
-        - name: inflate
-          image: public.ecr.aws/eks-distro/kubernetes/pause:3.7
-          resources:
-            requests:
-              cpu: 1
-```
-
-## Verify Pending Pods
+Verify the scaling process:
 
 ```bash
 kubectl get pods
 ```
 
-## Check Karpenter Logs
+Check controller logs:
 
 ```bash
 kubectl logs -n karpenter deployment/karpenter
 ```
 
-## Verify Nodes
+Verify newly provisioned nodes:
 
 ```bash
 kubectl get nodes
 ```
 
 ---
+### 💰 Spot & On-Demand Best Practices
 
-# 💰 Spot + On-Demand Best Practices
+| Workload               | Recommended Capacity |
+| ---------------------- | -------------------- |
+| Production APIs        | Mixed                |
+| Critical Services      | On-Demand            |
+| Stateless Applications | Spot                 |
+| CI/CD Workloads        | Spot                 |
+| Batch Jobs             | Spot                 |
 
-| Workload Type       | Recommended Capacity |
-|---------------------|----------------------|
-| Critical workloads  |  On-Demand           |
-| Stateless workloads |  Spot                |
-| CI/CD workloads     |  Spot                |
-| Production APIs     |  Mixed               |
+---
+## 🔥 Production Best Practices
+
+### Use Multiple Instance Types
+
+Avoid depending on a single EC2 instance type to improve availability.
+
+Examples:
+
+* c6i.large
+* c7a.large
+* m6i.large
+* m7i.large
+* r6i.large
+
+---
+### Enable Node Consolidation
+
+Automatically remove underutilized nodes to reduce infrastructure costs.
+
+---
+### Use Private Subnets
+
+Deploy worker nodes in private subnets for improved security.
 
 ---
 
-# 🔥 Production Best Practices
+### Use IRSA
 
-## ✅ Use Multiple Instance Types
-
-Avoid dependency on a single EC2 instance type.
-
-```yaml
-values:
-  - m5.large
-  - m5.xlarge
-  - c5.large
-  - r5.large
-```
+Grant AWS permissions through IAM Roles for Service Accounts instead of static credentials.
 
 ---
+### Restrict Node Limits
 
-## ✅ Enable Consolidation
-
-Automatically removes underutilized nodes.
-
-```yaml
-disruption:
-  consolidationPolicy: WhenUnderutilized
-```
+Configure CPU and memory limits to prevent unexpected scaling and infrastructure costs.
 
 ---
+### Diversify Capacity
 
-## ✅ Use Private Subnets
+Use a mix of:
 
-Production nodes should run in private subnets.
-
----
-
-## ✅ Use IRSA Only
-
-Avoid static AWS credentials inside pods.
+* Spot Instances
+* On-Demand Instances
+* Multiple Availability Zones
+* Multiple EC2 families
 
 ---
+## 🚨 Troubleshooting
 
-## ✅ Restrict Node Limits
+### Karpenter Cannot Discover Subnets
 
-Prevent unexpected infrastructure costs.
+Verify:
 
-```yaml
-limits:
-  cpu: "500"
-```
-
----
-
-# 🚨 Common Issues
-
-## Karpenter Cannot Discover Subnets
-
-Verify subnet tags:
-
-```bash
-aws ec2 describe-subnets
-```
+* Subnet tags
+* Security group tags
+* Discovery tag values
 
 ---
+### AccessDenied Errors
 
-## AccessDenied Errors
+Verify:
 
-Check:
-
-- IAM permissions
-- IRSA annotation
-- OIDC provider setup
+* IAM Policy
+* IAM Role
+* IRSA annotation
+* OIDC Provider
+* Trust relationship
 
 ---
+### Nodes Not Launching
 
-## Nodes Not Launching
-
-Check Karpenter logs:
+Inspect controller logs:
 
 ```bash
 kubectl logs -n karpenter deployment/karpenter
 ```
 
+Check:
+
+* EC2NodeClass
+* NodePool
+* AWS quotas
+* Instance availability
+* VPC configuration
+
 ---
+## 🧹 Cleanup
 
-# 🧹 Cleanup
-
-## Delete NodePool
+Delete the NodePool:
 
 ```bash
 kubectl delete nodepool default
 ```
 
-## Remove Karpenter
+Remove Karpenter:
 
 ```bash
 helm uninstall karpenter -n karpenter
 ```
 
 ---
+## 📚 References
 
-# 📚 References
-
-- AWS EKS Documentation
-- Karpenter Official Documentation
-- Kubernetes Documentation
-- Helm Documentation
+* Amazon EKS Documentation
+* Karpenter Documentation
+* Kubernetes Documentation
+* Helm Documentation
 
 ---
+## 🎯 Conclusion
 
-# 🎯 Conclusion
+Karpenter modernizes node autoscaling for Amazon EKS by provisioning infrastructure dynamically based on workload requirements instead of relying on predefined Auto Scaling Groups.
 
-Karpenter provides:
+Compared to traditional node autoscaling solutions, Karpenter provides:
 
-- Faster autoscaling
-- Better bin-packing
-- Reduced infrastructure cost
-- Spot optimization
-- Simplified node management
+* Faster node provisioning
+* Intelligent workload-aware scheduling
+* Improved bin-packing efficiency
+* Dynamic EC2 instance selection
+* Native Spot Instance optimization
+* Automatic node consolidation
+* Lower infrastructure costs
+* Simplified cluster operations
 
-For modern Amazon EKS environments, Karpenter is becoming the preferred replacement for Cluster Autoscaler.
+For organizations building modern cloud-native platforms on Amazon EKS, Karpenter provides a scalable, efficient, and production-ready approach to Kubernetes node autoscaling.
+---
