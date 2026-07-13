@@ -3,7 +3,90 @@
 Deploy and configure **Karpenter** on an **Amazon EKS** cluster using **IAM Roles for Service Accounts (IRSA)**, **EC2NodeClass**, **NodePool**, and **Spot/On-Demand provisioning** to build a scalable, production-ready Kubernetes platform.
 
 ---
+## 📑 Table of Contents
 
+* [📖 Project Overview](#-project-overview)
+* [🎯 Key Objectives](#-key-objectives)
+* [🌟 Why This Project Matters](#-why-this-project-matters)
+* [🏗️ Architecture Overview](#️-architecture-overview)
+* [✨ Features](#-features)
+* [📋 Prerequisites](#-prerequisites)
+* [🏗️ Architecture Components](#️-architecture-components)
+* [🔑 Create IAM Role for Karpenter (IRSA)](#-create-iam-role-for-karpenter-irsa)
+* [🔐 Step 1: Configure IAM for Karpenter (IRSA)](#-step-1-configure-iam-for-karpenter-irsa)
+
+  * [1.1 Create the IAM Policy](#11-create-the-iam-policy)
+  * [1.2 Create the IAM Policy Resource](#12-create-the-iam-policy-resource)
+  * [1.3 Create the IAM Role Trust Policy](#13-create-the-iam-role-trust-policy)
+  * [1.4 Create the IAM Role](#14-create-the-iam-role)
+  * [1.5 Annotate the Karpenter Service Account](#15-annotate-the-karpenter-service-account)
+  * [1.6 Validate the IRSA Configuration](#16-validate-the-irsa-configuration)
+* [🏷️ Step 2: Configure AWS Resource Discovery](#️-step-2-configure-aws-resource-discovery)
+
+  * [2.1 Tag Amazon VPC Subnets](#21-tag-amazon-vpc-subnets)
+  * [2.2 Tag Security Groups](#22-tag-security-groups)
+  * [2.3 Configure the IAM Instance Profile](#23-configure-the-iam-instance-profile)
+* [⚙️ Step 3: Install Karpenter](#️-step-3-install-karpenter)
+
+  * [3.1 Install Helm](#31-install-helm)
+  * [3.2 Install Karpenter Custom Resource Definitions (CRDs)](#32-install-karpenter-custom-resource-definitions-crds)
+  * [3.3 Deploy the Karpenter Controller](#33-deploy-the-karpenter-controller)
+  * [3.4 Verify the Installation](#34-verify-the-installation)
+* [🧩 Step 4: Create an EC2NodeClass](#-step-4-create-an-ec2nodeclass)
+
+  * [4.1 Configure the EC2NodeClass](#41-configure-the-ec2nodeclass)
+  * [4.2 Configuration Overview](#42-configuration-overview)
+  * [4.3 Production Best Practices](#43-production-best-practices)
+* [🖥️ Step 5: Create a NodePool](#️-step-5-create-a-nodepool)
+
+  * [5.1 Configure the NodePool](#51-configure-the-nodepool)
+  * [5.2 Scheduling Requirements](#52-scheduling-requirements)
+  * [5.3 Resource Limits](#53-resource-limits)
+  * [5.4 Node Disruption Policies](#54-node-disruption-policies)
+  * [5.5 Scheduling Policies](#55-scheduling-policies)
+* [🔄 Step 6: Understand the Karpenter Provisioning Workflow](#-step-6-understand-the-karpenter-provisioning-workflow)
+
+  * [6.1 Scale-Up Workflow](#61-scale-up-workflow)
+  * [6.2 Node Consolidation Workflow](#62-node-consolidation-workflow)
+  * [6.3 End-to-End Provisioning Workflow](#63-end-to-end-provisioning-workflow)
+  * [6.4 Benefits of the Provisioning Workflow](#64-benefits-of-the-provisioning-workflow)
+  * [6.5 Verify the Provisioning Workflow](#65-verify-the-provisioning-workflow)
+* [📈 Step 7: Validate Karpenter Autoscaling](#-step-7-validate-karpenter-autoscaling)
+
+  * [7.1 Deploy a Test Workload](#71-deploy-a-test-workload)
+  * [7.2 Verify Pending Pods](#72-verify-pending-pods)
+  * [7.3 Monitor the Karpenter Controller](#73-monitor-the-karpenter-controller)
+  * [7.4 Verify Newly Provisioned Worker Nodes](#74-verify-newly-provisioned-worker-nodes)
+  * [7.5 Validate Automatic Scale-Down](#75-validate-automatic-scale-down)
+* [💰 Cost Optimization](#-cost-optimization)
+
+  * [🎯 Spot Instances](#-spot-instances)
+  * [🔄 Consolidation](#-consolidation)
+  * [🖥️ Intelligent Instance Selection](#️-intelligent-instance-selection)
+  * [📦 Bin Packing](#-bin-packing)
+  * [🔄 Cost Optimization Workflow](#-cost-optimization-workflow)
+  * [✅ Cost Optimization Best Practices](#-cost-optimization-best-practices)
+* [🏆 Production Best Practices](#-production-best-practices)
+
+  * [🔒 Security Best Practices](#-security-best-practices)
+  * [☁️ Infrastructure Best Practices](#️-infrastructure-best-practices)
+  * [🖥️ NodePool Best Practices](#️-nodepool-best-practices)
+  * [⚙️ EC2NodeClass Best Practices](#️-ec2nodeclass-best-practices)
+  * [💰 Cost Optimization Best Practices](#-cost-optimization-best-practices-1)
+  * [📊 Monitoring and Observability](#-monitoring-and-observability)
+  * [🚀 High Availability](#-high-availability)
+  * [🔄 Operational Best Practices](#-operational-best-practices)
+  * [✅ Production Readiness Checklist](#-production-readiness-checklist)
+* [🛠️ Troubleshooting](#️-troubleshooting)
+* [🧹 Cleanup](#-cleanup)
+* [📚 References](#-references)
+* [🙏 Acknowledgements](#-acknowledgements)
+
+  * [⭐ Support](#-support)
+  * [👨‍💻 Author](#-author)
+
+
+---
 ## 📖 Project Overview
 
 This project demonstrates a **production-ready implementation of Karpenter on Amazon EKS** to provide intelligent, Kubernetes-native node autoscaling for containerized workloads.
@@ -1671,3 +1754,16 @@ Your support helps improve the project and encourages the creation of more produ
 > **"Automating infrastructure, enabling scalable platforms, and continuously learning cloud-native technologies."**
 
 ---
+## ⭐ Support
+
+If you found this project helpful, consider supporting it by:
+
+* ⭐ **Star** this repository to show your appreciation.
+* 🍴 **Fork** the repository and customize it for your own learning or production use.
+* 🛠️ **Contribute** by submitting Issues, suggesting improvements, or opening Pull Requests.
+* 📢 **Share** this project with the DevOps, Kubernetes, and Cloud Native community.
+* 💡 **Provide Feedback** to help improve the project and future implementations.
+
+Your support helps maintain this repository and encourages the development of more production-ready DevOps, Kubernetes, and Cloud Engineering projects.
+
+If this project has been useful in your learning journey, a ⭐ on the repository is greatly appreciated. Thank you for your support!
