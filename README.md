@@ -30,6 +30,8 @@ Karpenter dynamically creates and terminates EC2 instances based on unschedulabl
 
 # 🏗️ Architecture Overview
 
+![Project Overview](docs/images/karpenter.png "Architecture")
+
 ```text
 Pending Pods
       ↓
